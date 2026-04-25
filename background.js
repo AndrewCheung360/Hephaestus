@@ -7,6 +7,7 @@
 'use strict';
 
 importScripts(
+  'lib/api-config.js',
   'lib/claude-client.js',
   'lib/veo-client.js',
   'actions/summary.js',
@@ -80,12 +81,16 @@ function abortAll(reason) {
   return count;
 }
 
-async function probeKeys() {
-  const status = { anthropic: 'missing', gemini: 'missing' };
-  const { anthropicApiKey, geminiApiKey } = await chrome.storage.local.get(['anthropicApiKey', 'geminiApiKey']);
-  if (anthropicApiKey) status.anthropic = 'set';
-  if (geminiApiKey) status.gemini = 'set';
-  return status;
+async function probeServer() {
+  try {
+    const base = await self.HephApiConfig.getServerBase();
+    const r = await fetch(`${base}/health`, { method: 'GET' });
+    if (!r.ok) return { server: 'down' };
+    const j = await r.json().catch(() => ({}));
+    return { server: j && j.ok ? 'ok' : 'down' };
+  } catch (_) {
+    return { server: 'down' };
+  }
 }
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -102,13 +107,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.type === 'ACTION_REQUEST') {
     const tabId = message.tabId || (sender && sender.tab && sender.tab.id);
-    const result = startJob({
-      action: message.action,
-      pageContext: message.pageContext || {},
-      tabId,
-      sourceJobId: message.jobId
-    });
-    sendResponse(result);
+    // Orbital runs from the page; streaming updates go to the side panel listener.
+    // If the panel is closed it is often unloaded, so nothing receives ACTION_UPDATE.
+    // Open the panel for this tab first (short delay so the panel can attach listeners).
+    (async () => {
+      try {
+        if (tabId) {
+          await chrome.sidePanel.open({ tabId });
+          await new Promise((r) => setTimeout(r, 120));
+        }
+      } catch (_) {}
+      const result = startJob({
+        action: message.action,
+        pageContext: message.pageContext || {},
+        tabId,
+        sourceJobId: message.jobId
+      });
+      sendResponse(result);
+    })();
     return true;
   }
 
@@ -118,8 +134,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
-  if (message.type === 'GET_KEY_STATUS') {
-    probeKeys().then(sendResponse);
+  if (message.type === 'GET_SERVER_STATUS') {
+    probeServer().then(sendResponse);
     return true;
   }
 
