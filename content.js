@@ -83,6 +83,16 @@
       sendResponse(getPageContext());
       return true;
     }
+    if (message.type === 'gaze:calibrate-head') {
+      window.dispatchEvent(new CustomEvent('head-cal:start'));
+      sendResponse({ ok: true });
+      return true;
+    }
+    if (message.type === 'gaze:calibrate-mouth') {
+      window.dispatchEvent(new CustomEvent('mouth-cal:start'));
+      sendResponse({ ok: true });
+      return true;
+    }
     return false;
   });
 

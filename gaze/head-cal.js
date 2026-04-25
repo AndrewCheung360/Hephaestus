@@ -229,6 +229,10 @@
     }
   }
 
+  function requestStartCalibration() {
+    startCalibration();
+  }
+
   function averageSamples(samples) {
     if (!samples.length) return { nx: NaN, ny: NaN, yaw: NaN, pitch: NaN };
     const sum = samples.reduce((acc, cur) => {
@@ -446,6 +450,8 @@
     }
   }, true);
 
+  window.startHeadCalibration = requestStartCalibration;
+  window.addEventListener('head-cal:start', requestStartCalibration);
   window.addEventListener('head:frame', handleHeadFrame);
   window.addEventListener('blink:released', handleBlinkRelease);
 })();
