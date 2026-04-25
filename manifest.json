@@ -1,5 +1,8 @@
 {
   "manifest_version": 3,
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' http://127.0.0.1:* http://localhost:*; media-src 'self' http://127.0.0.1:* http://localhost:*"
+  },
   "name": "Hephaestus: Hands-Free Learning Forge",
   "version": "0.1.0",
   "description": "A Claude-powered AI Learning Forge for hands-free study. Head tracking + double-mouth-open opens an Orbital Command Menu at your gaze.",
@@ -17,9 +20,7 @@
     "webNavigation"
   ],
   "host_permissions": [
-    "<all_urls>",
-    "https://api.anthropic.com/*",
-    "https://generativelanguage.googleapis.com/*"
+    "<all_urls>"
   ],
   "background": {
     "service_worker": "background.js"
@@ -60,6 +61,7 @@
     {
       "resources": [
         "lib/Readability.js",
+        "styles/design-tokens.css",
         "orbital/orbital-menu.css",
         "gaze/gaze-overlay.css",
         "gaze/human/human.esm.js",

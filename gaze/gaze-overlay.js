@@ -72,6 +72,13 @@
       return;
     }
     try {
+      const tokensUrl = chrome.runtime.getURL('styles/design-tokens.css');
+      const tokensLink = document.createElement('link');
+      tokensLink.id = 'gaze-overlay-tokens';
+      tokensLink.rel = 'stylesheet';
+      tokensLink.href = tokensUrl;
+      document.documentElement.appendChild(tokensLink);
+
       const url = chrome.runtime.getURL('gaze/gaze-overlay.css');
       const link = document.createElement('link');
       link.id = STYLE_ID;

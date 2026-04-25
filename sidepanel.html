@@ -3,12 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/design-tokens.css">
   <link rel="stylesheet" href="sidepanel.css">
 </head>
 <body>
   <div id="container">
     <div id="heph-header">
-      <img src="icons/icon-48.png" alt="Hephaestus" class="heph-logo">
+      <img src="icons/hephy_logo.png" alt="Hephaestus" class="heph-logo">
       <div>
         <h2 class="heph-title">Hephaestus</h2>
         <p class="heph-tagline">Hands-Free Learning Forge</p>
@@ -86,46 +90,20 @@
 
     <hr>
 
-    <!-- API keys -->
-    <div id="api-keys-section">
-      <h3>API Keys</h3>
+    <!-- Local Hephaestus proxy (API keys live in server/.env only) -->
+    <div id="server-section">
+      <h3>Local server</h3>
       <p class="help-text">
-        Stored locally in <code>chrome.storage.local</code>. Get keys from
-        <a href="https://console.anthropic.com" target="_blank" rel="noopener">Anthropic</a> and
-        <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a>.
+        Run <code>cd server &amp;&amp; npm install &amp;&amp; npm start</code> and copy <code>server/.env.example</code> to <code>server/.env</code> with your keys.
+        Claude uses <code>claude-haiku-4-5</code> on the server; Veo uses the default preview model.
       </p>
-
       <div class="setting-group">
-        <label class="setting-label" for="anthropic-key">Anthropic API key</label>
-        <input type="password" id="anthropic-key" class="text-input" placeholder="sk-ant-...">
+        <label class="setting-label" for="server-url">Server base URL</label>
+        <input type="text" id="server-url" class="text-input" placeholder="http://127.0.0.1:8787" spellcheck="false" autocomplete="off">
       </div>
-
-      <div class="setting-group">
-        <label class="setting-label" for="gemini-key">Gemini API key (for Veo)</label>
-        <input type="password" id="gemini-key" class="text-input" placeholder="AIza...">
-      </div>
-
-      <div class="setting-group">
-        <label class="setting-label" for="model-fast">Fast model</label>
-        <select id="model-fast" class="setting-select">
-          <option value="claude-sonnet-4-6" selected>claude-sonnet-4-6</option>
-          <option value="claude-haiku-4-5-20251001">claude-haiku-4-5</option>
-          <option value="claude-opus-4-7">claude-opus-4-7</option>
-        </select>
-      </div>
-
-      <div class="setting-group">
-        <label class="setting-label" for="model-deep">Deep model (Mastery Path)</label>
-        <select id="model-deep" class="setting-select">
-          <option value="claude-opus-4-7" selected>claude-opus-4-7</option>
-          <option value="claude-sonnet-4-6">claude-sonnet-4-6</option>
-        </select>
-      </div>
-
-      <button id="save-keys-btn" class="btn primary">Save</button>
+      <button id="save-server-url-btn" class="btn secondary">Save URL</button>
       <div class="key-status">
-        <span id="anthropic-status">Anthropic: ?</span>
-        <span id="gemini-status">Gemini: ?</span>
+        <span id="server-status">Server: checking…</span>
       </div>
     </div>
 
