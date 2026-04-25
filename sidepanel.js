@@ -361,9 +361,19 @@
   }
 
   // ---- Listen for action updates from the background ----
+  // Orbital runs from the content script: only the content script gets ACTION_REQUEST's
+  // sendResponse(jobId), so currentJobId would stay stale after a side-panel run and
+  // we'd drop every update. Sync from broadcasts instead; adopt job if panel missed `started`.
   chrome.runtime.onMessage.addListener((message) => {
     if (!message || message.type !== 'ACTION_UPDATE') return;
-    if (currentJobId && message.jobId !== currentJobId) return;
+    const jid = message.jobId;
+    if (message.status === 'started') {
+      currentJobId = jid;
+    } else if (!currentJobId && jid && renderers[message.action]) {
+      currentJobId = jid;
+    } else if (currentJobId && jid !== currentJobId) {
+      return;
+    }
     const renderer = renderers[message.action];
     if (renderer) renderer(message);
     if (message.status === 'started') setStatus(`Running ${message.action}…`);
