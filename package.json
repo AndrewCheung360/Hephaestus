@@ -1,0 +1,7 @@
+{
+  "name": "hephaestus",
+  "private": true,
+  "scripts": {
+    "server": "npm install --prefix server && npm --prefix server start"
+  }
+}
