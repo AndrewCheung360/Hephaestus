@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <div id="container">
+    <div id="heph-header">
+      <img src="icons/icon-48.png" alt="Hephaestus" class="heph-logo">
+      <div>
+        <h2 class="heph-title">Hephaestus</h2>
+        <p class="heph-tagline">Hands-Free Learning Forge</p>
+      </div>
+    </div>
+
+    <!-- Head Tracking -->
+    <div id="gaze-section">
+      <h3>Head Tracking</h3>
+      <div class="setting-group">
+        <label class="toggle-container">
+          <input type="checkbox" id="gaze-enabled">
+          <span class="toggle-slider"></span>
+          <span class="toggle-label">Enable</span>
+        </label>
+        <p class="help-text">Camera-based head tracking. Runs locally; nothing leaves your machine.</p>
+      </div>
+
+      <div class="status-indicator">
+        <span class="status-dot" id="gaze-status-dot"></span>
+        <span id="gaze-status-text">Disabled</span>
+      </div>
+
+      <button id="calibrate-btn" class="btn secondary">Calibrate Head Position</button>
+
+      <div class="setting-group">
+        <label class="setting-label" for="dwell-time">
+          Dwell Time: <span id="dwell-value">600</span>ms
+        </label>
+        <input type="range" id="dwell-time" min="300" max="1200" step="50" value="600" class="slider">
+        <p class="help-text">Hover duration before a dwell-click fires.</p>
+      </div>
+
+      <details class="keyboard-shortcuts">
+        <summary>Keyboard shortcuts</summary>
+        <ul>
+          <li><kbd>Alt+H</kbd> — calibrate head tracking</li>
+          <li><kbd>Alt+M</kbd> — calibrate mouth click</li>
+          <li><kbd>Alt+P</kbd> — toggle pointer overlay</li>
+          <li><kbd>Alt+V</kbd> — toggle camera preview</li>
+          <li><kbd>Esc</kbd> — close orbital menu / cancel action</li>
+        </ul>
+      </details>
+    </div>
+
+    <hr>
+
+    <!-- Mouth click + Orbital menu -->
+    <div id="mouth-section">
+      <h3>Mouth Gestures</h3>
+      <div class="setting-group">
+        <label class="toggle-container">
+          <input type="checkbox" id="mouth-click-enabled">
+          <span class="toggle-slider"></span>
+          <span class="toggle-label">Enable mouth-open</span>
+        </label>
+        <p class="help-text">
+          <strong>Single open</strong> = click. <strong>Double open</strong> (within 0.4s) = open the Orbital Command Menu at your gaze.
+        </p>
+      </div>
+
+      <div class="status-indicator">
+        <span class="status-dot" id="mouth-status-dot"></span>
+        <span id="mouth-status-text">Not calibrated</span>
+      </div>
+
+      <button id="calibrate-mouth-btn" class="btn secondary">Calibrate Mouth Click</button>
+
+      <hr style="margin: 16px 0;">
+      <p class="help-text" style="margin-bottom: 8px;">
+        <strong>Trigger the Orbital Menu</strong> by nodding (chin down + back up), double-blinking, pressing <kbd>Alt+O</kbd> on the page, or:
+      </p>
+      <button id="open-orbital-btn" class="btn secondary">Open Orbital Menu (current tab)</button>
+    </div>
+
+    <hr>
+
+    <!-- API keys -->
+    <div id="api-keys-section">
+      <h3>API Keys</h3>
+      <p class="help-text">
+        Stored locally in <code>chrome.storage.local</code>. Get keys from
+        <a href="https://console.anthropic.com" target="_blank" rel="noopener">Anthropic</a> and
+        <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a>.
+      </p>
+
+      <div class="setting-group">
+        <label class="setting-label" for="anthropic-key">Anthropic API key</label>
+        <input type="password" id="anthropic-key" class="text-input" placeholder="sk-ant-...">
+      </div>
+
+      <div class="setting-group">
+        <label class="setting-label" for="gemini-key">Gemini API key (for Veo)</label>
+        <input type="password" id="gemini-key" class="text-input" placeholder="AIza...">
+      </div>
+
+      <div class="setting-group">
+        <label class="setting-label" for="model-fast">Fast model</label>
+        <select id="model-fast" class="setting-select">
+          <option value="claude-sonnet-4-6" selected>claude-sonnet-4-6</option>
+          <option value="claude-haiku-4-5-20251001">claude-haiku-4-5</option>
+          <option value="claude-opus-4-7">claude-opus-4-7</option>
+        </select>
+      </div>
+
+      <div class="setting-group">
+        <label class="setting-label" for="model-deep">Deep model (Mastery Path)</label>
+        <select id="model-deep" class="setting-select">
+          <option value="claude-opus-4-7" selected>claude-opus-4-7</option>
+          <option value="claude-sonnet-4-6">claude-sonnet-4-6</option>
+        </select>
+      </div>
+
+      <button id="save-keys-btn" class="btn primary">Save</button>
+      <div class="key-status">
+        <span id="anthropic-status">Anthropic: ?</span>
+        <span id="gemini-status">Gemini: ?</span>
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- Output panel -->
+    <div id="output-section">
+      <h3>Forge Output</h3>
+
+      <div id="output-tabs" class="tab-row">
+        <button class="tab-btn active" data-tab="summary">Summary</button>
+        <button class="tab-btn" data-tab="flashcards">Flashcards</button>
+        <button class="tab-btn" data-tab="quiz">Quiz</button>
+        <button class="tab-btn" data-tab="podcast">Podcast</button>
+        <button class="tab-btn" data-tab="video">Video</button>
+        <button class="tab-btn" data-tab="mastery_path">Mastery</button>
+      </div>
+
+      <div id="output-status" class="output-status">Idle. Open the Orbital Menu on the page to begin.</div>
+
+      <div id="output-panes">
+        <div class="pane active" data-pane="summary"><div class="pane-body" id="pane-summary">No summary yet.</div></div>
+        <div class="pane" data-pane="flashcards"><div class="pane-body" id="pane-flashcards">No flashcards yet.</div></div>
+        <div class="pane" data-pane="quiz"><div class="pane-body" id="pane-quiz">No quiz yet.</div></div>
+        <div class="pane" data-pane="podcast">
+          <div class="pane-body" id="pane-podcast">No podcast yet.</div>
+          <div class="podcast-controls">
+            <button id="podcast-play" class="btn secondary">Play</button>
+            <button id="podcast-stop" class="btn secondary">Stop</button>
+          </div>
+        </div>
+        <div class="pane" data-pane="video"><div class="pane-body" id="pane-video">No video yet.</div></div>
+        <div class="pane" data-pane="mastery_path"><div class="pane-body" id="pane-mastery">No mastery path yet.</div></div>
+      </div>
+
+      <div class="output-actions">
+        <button id="run-active-btn" class="btn primary">Run on current tab</button>
+        <button id="cancel-btn" class="btn secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>
