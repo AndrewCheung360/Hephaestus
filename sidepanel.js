@@ -45,17 +45,34 @@
     });
 
     $('calibrate-btn').addEventListener('click', () => {
-      sendToActiveTab({ type: 'gaze:calibrate-head' });
+      sendToActiveTab({ type: 'gaze:calibrate-head' }, 'Head calibration');
     });
     $('calibrate-mouth-btn').addEventListener('click', () => {
-      sendToActiveTab({ type: 'gaze:calibrate-mouth' });
+      sendToActiveTab({ type: 'gaze:calibrate-mouth' }, 'Mouth calibration');
     });
+    const openOrbital = $('open-orbital-btn');
+    if (openOrbital) {
+      openOrbital.addEventListener('click', () => {
+        sendToActiveTab({ type: 'orbital:open' }, 'Open menu');
+      });
+    }
   }
 
-  function sendToActiveTab(message) {
+  function sendToActiveTab(message, label) {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (!tabs || !tabs[0]) return;
-      chrome.tabs.sendMessage(tabs[0].id, message).catch(() => {});
+      if (!tabs || !tabs[0]) {
+        setStatus(`${label || 'Action'}: no active tab.`);
+        return;
+      }
+      const tab = tabs[0];
+      const blocked = !tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://') || tab.url.startsWith('edge://');
+      if (blocked) {
+        setStatus(`${label || 'Action'}: cannot run on ${tab.url}. Switch to a normal page.`);
+        return;
+      }
+      chrome.tabs.sendMessage(tab.id, message).catch((err) => {
+        setStatus(`${label || 'Action'} failed: ${err.message}. Reload the page if you just updated the extension.`);
+      });
     });
   }
 

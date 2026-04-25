@@ -156,9 +156,11 @@
     const cx = Number.isFinite(detail.x) ? detail.x : window.innerWidth / 2;
     const cy = Number.isFinite(detail.y) ? detail.y : window.innerHeight / 2;
     openCenter = { x: cx, y: cy };
-    window.__orbitalActive = true;
+    // buildMenu() calls teardown() which clears __orbitalActive; set it AFTER
+    // so the flag stays true while the menu is open. Without this, mouth
+    // clicks while the menu is open leak through to links behind the menu.
     buildMenu(cx, cy);
-    // Default focus: snap to the user's current gaze (which is the center).
+    window.__orbitalActive = true;
     updateFocus(cx, cy);
   });
 

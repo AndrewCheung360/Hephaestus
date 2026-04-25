@@ -282,17 +282,11 @@
       return;
     }
 
+    // Dwell is a TARGETING indicator only — it shows what's snapped, but never
+    // fires a click. Clicks come from explicit gestures (mouth-open, blink-hold).
     dwellAccum += delta;
     const progress = Math.min(1, dwellAccum / dwellThreshold);
     updateDwellIndicator(target, progress);
-
-    if (dwellAccum >= dwellThreshold) {
-      dwellAccum = 0;
-      hideDwellIndicator();
-      synthClick(target, 0);
-      beep(560, 120);
-      if (DEBUG_DWELL) console.debug('[GazeDwell] dwell-clicked:', target);
-    }
   }
 
   // Single mouth-open = click on snapped link. The orbital detector intercepts

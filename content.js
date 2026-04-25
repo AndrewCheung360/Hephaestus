@@ -93,6 +93,13 @@
       sendResponse({ ok: true });
       return true;
     }
+    if (message.type === 'orbital:open') {
+      const x = Number.isFinite(message.x) ? message.x : window.innerWidth / 2;
+      const y = Number.isFinite(message.y) ? message.y : window.innerHeight / 2;
+      window.dispatchEvent(new CustomEvent('orbital:request-open', { detail: { x, y } }));
+      sendResponse({ ok: true });
+      return true;
+    }
     return false;
   });
 

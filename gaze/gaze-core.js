@@ -936,13 +936,24 @@ let headAutoCenter = { nx: 0, ny: 0, ready: false };
           console.log(`[GazeCore] Mouth stats: MAR=${mouthRatio.toFixed(3)}, threshold=${threshold.toFixed(3)}, calibration=`, mouthCalibration);
         }
 
-        // Mouth open detected: ratio above calibrated threshold and cooldown period passed
-        if (mouthRatio > threshold && (ts - lastMouthClickTime) > MOUTH_OPEN_COOLDOWN_MS) {
+        // Mouth open detected: ratio above calibrated threshold and cooldown period passed.
+        // Yaw guard: when the face is turned > MOUTH_YAW_GUARD_DEG away from the
+        // camera, mouth landmarks foreshorten and MAR can spike falsely. Skip
+        // those frames so looking left/right doesn't fire phantom clicks.
+        const MOUTH_YAW_GUARD_DEG = 18;
+        const yawForGuard = window.__lastHeadFrame && typeof window.__lastHeadFrame.yawDeg === 'number'
+          ? Math.abs(window.__lastHeadFrame.yawDeg)
+          : 0;
+        if (mouthRatio > threshold && (ts - lastMouthClickTime) > MOUTH_OPEN_COOLDOWN_MS && yawForGuard <= MOUTH_YAW_GUARD_DEG) {
           lastMouthClickTime = ts;
           window.dispatchEvent(new CustomEvent('smile:click', {
             detail: { mouthRatio, ts }
           }));
           console.log(`[GazeCore] 👄 MOUTH OPEN CLICK! MAR: ${mouthRatio.toFixed(3)} > ${threshold.toFixed(3)}`);
+        } else if (mouthRatio > threshold && yawForGuard > MOUTH_YAW_GUARD_DEG) {
+          if (window.__mouthFrameCount % 30 === 0) {
+            console.log(`[GazeCore] mouth-click suppressed (yaw=${yawForGuard.toFixed(1)}° > ${MOUTH_YAW_GUARD_DEG}°)`);
+          }
         }
       }
     }
