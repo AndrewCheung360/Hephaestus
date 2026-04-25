@@ -81,18 +81,6 @@ function abortAll(reason) {
   return count;
 }
 
-async function probeServer() {
-  try {
-    const base = await self.HephApiConfig.getServerBase();
-    const r = await fetch(`${base}/health`, { method: 'GET' });
-    if (!r.ok) return { server: 'down' };
-    const j = await r.json().catch(() => ({}));
-    return { server: j && j.ok ? 'ok' : 'down' };
-  } catch (_) {
-    return { server: 'down' };
-  }
-}
-
 chrome.runtime.onInstalled.addListener(() => {
   chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => {});
 });
@@ -114,7 +102,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       try {
         if (tabId) {
           await chrome.sidePanel.open({ tabId });
-          await new Promise((r) => setTimeout(r, 120));
+          await new Promise((r) => setTimeout(r, 280));
         }
       } catch (_) {}
       const result = startJob({
@@ -131,11 +119,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'ABORT_ACTION') {
     const ok = message.jobId ? abortJob(message.jobId, message.reason) : (abortAll(message.reason || 'cancelled') > 0);
     sendResponse({ aborted: ok });
-    return true;
-  }
-
-  if (message.type === 'GET_SERVER_STATUS') {
-    probeServer().then(sendResponse);
     return true;
   }
 

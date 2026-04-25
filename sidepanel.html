@@ -19,6 +19,8 @@
       </div>
     </div>
 
+    <hr>
+
     <!-- Head Tracking -->
     <div id="gaze-section">
       <h3>Head Tracking</h3>
@@ -81,8 +83,8 @@
 
       <button id="calibrate-mouth-btn" class="btn secondary">Calibrate Mouth Click</button>
 
-      <hr style="margin: 16px 0;">
-      <p class="help-text" style="margin-bottom: 8px;">
+      <hr class="hr-compact">
+      <p class="help-text help-text-tight-bottom">
         <strong>Trigger the Orbital Menu</strong> by nodding (chin down + back up), double-blinking, pressing <kbd>Alt+O</kbd> on the page, or:
       </p>
       <button id="open-orbital-btn" class="btn secondary">Open Orbital Menu (current tab)</button>
@@ -90,36 +92,40 @@
 
     <hr>
 
-    <!-- Local Hephaestus proxy (API keys live in server/.env only) -->
-    <div id="server-section">
-      <h3>Local server</h3>
-      <p class="help-text">
-        Run <code>cd server &amp;&amp; npm install &amp;&amp; npm start</code> and copy <code>server/.env.example</code> to <code>server/.env</code> with your keys.
-        Claude uses <code>claude-haiku-4-5</code> on the server; Veo uses the default preview model.
-      </p>
-      <div class="setting-group">
-        <label class="setting-label" for="server-url">Server base URL</label>
-        <input type="text" id="server-url" class="text-input" placeholder="http://127.0.0.1:8787" spellcheck="false" autocomplete="off">
-      </div>
-      <button id="save-server-url-btn" class="btn secondary">Save URL</button>
-      <div class="key-status">
-        <span id="server-status">Server: checking…</span>
-      </div>
-    </div>
-
-    <hr>
-
     <!-- Output panel -->
     <div id="output-section">
-      <h3>Forge Output</h3>
+      <h3 class="forge-output-heading">
+        <span class="forge-output-heading-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2 4 4 .5-3 3 .8 4.5L12 13l-3.8 2.5.8-4.5-3-3 4-.5 2-4z"/><path d="M5 21h14"/></svg>
+        </span>
+        Forge Output
+      </h3>
 
-      <div id="output-tabs" class="tab-row">
-        <button class="tab-btn active" data-tab="summary">Summary</button>
-        <button class="tab-btn" data-tab="flashcards">Flashcards</button>
-        <button class="tab-btn" data-tab="quiz">Quiz</button>
-        <button class="tab-btn" data-tab="podcast">Podcast</button>
-        <button class="tab-btn" data-tab="video">Video</button>
-        <button class="tab-btn" data-tab="mastery_path">Mastery</button>
+      <div id="output-tabs" class="tab-row" role="tablist" aria-label="Output type">
+        <button type="button" class="tab-btn active" data-tab="summary" role="tab" aria-selected="true" title="Summary">
+          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+          <span class="tab-label">Summary</span>
+        </button>
+        <button type="button" class="tab-btn" data-tab="flashcards" role="tab" aria-selected="false" title="Flashcards">
+          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><rect x="3" y="5" width="8" height="14" rx="1"/><rect x="13" y="5" width="8" height="10" rx="1"/></svg>
+          <span class="tab-label">Cards</span>
+        </button>
+        <button type="button" class="tab-btn" data-tab="quiz" role="tab" aria-selected="false" title="Quiz">
+          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg>
+          <span class="tab-label">Quiz</span>
+        </button>
+        <button type="button" class="tab-btn" data-tab="podcast" role="tab" aria-selected="false" title="Podcast">
+          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"/></svg>
+          <span class="tab-label">Pod</span>
+        </button>
+        <button type="button" class="tab-btn" data-tab="video" role="tab" aria-selected="false" title="Video">
+          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="m10 9 5 3-5 3V9Z"/></svg>
+          <span class="tab-label">Video</span>
+        </button>
+        <button type="button" class="tab-btn" data-tab="mastery_path" role="tab" aria-selected="false" title="Mastery path">
+          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M3 3v18h18"/><path d="m18 7-5 5-4-4-3 3"/></svg>
+          <span class="tab-label">Path</span>
+        </button>
       </div>
 
       <div id="output-status" class="output-status">Idle. Open the Orbital Menu on the page to begin.</div>
@@ -131,8 +137,12 @@
         <div class="pane" data-pane="podcast">
           <div class="pane-body" id="pane-podcast">No podcast yet.</div>
           <div class="podcast-controls">
-            <button id="podcast-play" class="btn secondary">Play</button>
-            <button id="podcast-stop" class="btn secondary">Stop</button>
+            <button type="button" id="podcast-play" class="forge-icon-btn forge-icon-btn--accent" aria-label="Play podcast" title="Play">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7L8 5z"/></svg>
+            </button>
+            <button type="button" id="podcast-stop" class="forge-icon-btn forge-icon-btn--danger" aria-label="Stop podcast" title="Stop">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg>
+            </button>
           </div>
         </div>
         <div class="pane" data-pane="video"><div class="pane-body" id="pane-video">No video yet.</div></div>
@@ -140,8 +150,14 @@
       </div>
 
       <div class="output-actions">
-        <button id="run-active-btn" class="btn primary">Run on current tab</button>
-        <button id="cancel-btn" class="btn secondary">Cancel</button>
+        <button type="button" id="run-active-btn" class="btn primary btn-forge btn-forge-run" title="Run the selected forge action on the current tab">
+          <svg class="btn-forge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          <span class="btn-forge-text">Run on tab</span>
+        </button>
+        <button type="button" id="cancel-btn" class="btn secondary btn-forge btn-forge-cancel" title="Cancel the current forge job">
+          <svg class="btn-forge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          <span class="btn-forge-text">Cancel</span>
+        </button>
       </div>
     </div>
   </div>

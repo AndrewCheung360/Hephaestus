@@ -6,8 +6,29 @@
   'use strict';
 
   const TABS = ['summary', 'flashcards', 'quiz', 'podcast', 'video', 'mastery_path'];
+  const MOUTH_CAL_STORAGE_KEY = 'mouthCalV1';
 
   function $(id) { return document.getElementById(id); }
+
+  /** MV3: `sendMessage` only returns a Promise in newer Chrome; callbacks work everywhere. */
+  function runtimeSend(message) {
+    return new Promise((resolve, reject) => {
+      try {
+        chrome.runtime.sendMessage(message, (response) => {
+          const err = chrome.runtime.lastError;
+          if (err) reject(new Error(err.message));
+          else resolve(response);
+        });
+      } catch (e) {
+        reject(e);
+      }
+    });
+  }
+
+  /** Active page tab while the side panel is focused (avoids wrong tab vs `currentWindow`). */
+  function queryActivePageTab(callback) {
+    chrome.tabs.query({ active: true, lastFocusedWindow: true }, callback);
+  }
 
   function escapeHtml(s) {
     return String(s)
@@ -16,16 +37,37 @@
       .replace(/>/g, '&gt;');
   }
 
+  function applyMouthCalStatus(res) {
+    const cal = res[MOUTH_CAL_STORAGE_KEY];
+    const text = $('mouth-status-text');
+    const dot = $('mouth-status-dot');
+    if (!text) return;
+    const ok = Boolean(cal && typeof cal.threshold === 'number' && cal.timestamp);
+    text.textContent = ok ? 'Calibrated' : 'Not calibrated';
+    if (dot) dot.classList.toggle('on', ok);
+  }
+
   // ---- Gaze + mouth toggle wiring ----
   function initGazeControls() {
-    chrome.storage.local.get(['gazeEnabled', 'mouthClickEnabled', 'gazeDwellMs'], (res) => {
-      $('gaze-enabled').checked = Boolean(res.gazeEnabled);
-      $('mouth-click-enabled').checked = Boolean(res.mouthClickEnabled);
-      const dwell = typeof res.gazeDwellMs === 'number' ? res.gazeDwellMs : 600;
-      $('dwell-time').value = dwell;
-      $('dwell-value').textContent = String(dwell);
-      $('gaze-status-text').textContent = res.gazeEnabled ? 'Enabled' : 'Disabled';
-      $('gaze-status-dot').classList.toggle('on', Boolean(res.gazeEnabled));
+    chrome.storage.local.get(
+      ['gazeEnabled', 'mouthClickEnabled', 'gazeDwellMs', MOUTH_CAL_STORAGE_KEY],
+      (res) => {
+        $('gaze-enabled').checked = Boolean(res.gazeEnabled);
+        $('mouth-click-enabled').checked = Boolean(res.mouthClickEnabled);
+        const dwell = typeof res.gazeDwellMs === 'number' ? res.gazeDwellMs : 600;
+        $('dwell-time').value = dwell;
+        $('dwell-value').textContent = String(dwell);
+        $('gaze-status-text').textContent = res.gazeEnabled ? 'Enabled' : 'Disabled';
+        $('gaze-status-dot').classList.toggle('on', Boolean(res.gazeEnabled));
+        applyMouthCalStatus(res);
+      }
+    );
+
+    chrome.storage.onChanged.addListener((changes, areaName) => {
+      if (areaName !== 'local' || !changes[MOUTH_CAL_STORAGE_KEY]) return;
+      applyMouthCalStatus({
+        [MOUTH_CAL_STORAGE_KEY]: changes[MOUTH_CAL_STORAGE_KEY].newValue
+      });
     });
 
     $('gaze-enabled').addEventListener('change', (e) => {
@@ -59,7 +101,7 @@
   }
 
   function sendToActiveTab(message, label) {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    queryActivePageTab((tabs) => {
       if (!tabs || !tabs[0]) {
         setStatus(`${label || 'Action'}: no active tab.`);
         return;
@@ -76,46 +118,6 @@
     });
   }
 
-  // ---- Local server ----
-  function refreshServerStatus() {
-    chrome.runtime.sendMessage({ type: 'GET_SERVER_STATUS' }).then((res) => {
-      if (!res) return;
-      const el = $('server-status');
-      if (res.server === 'ok') {
-        el.textContent = 'Server: OK';
-        el.classList.add('ok');
-      } else {
-        el.textContent = 'Server: unreachable';
-        el.classList.remove('ok');
-      }
-    }).catch(() => {
-      const el = $('server-status');
-      el.textContent = 'Server: unreachable';
-      el.classList.remove('ok');
-    });
-  }
-
-  function initServerPanel() {
-    chrome.storage.local.get(['hephaestusServerUrl'], (res) => {
-      if (res.hephaestusServerUrl) $('server-url').value = res.hephaestusServerUrl;
-    });
-
-    $('save-server-url-btn').addEventListener('click', () => {
-      const hephaestusServerUrl = $('server-url').value.trim();
-      const done = () => {
-        refreshServerStatus();
-        setStatus('Server URL saved.');
-      };
-      if (hephaestusServerUrl) chrome.storage.local.set({ hephaestusServerUrl }, done);
-      else chrome.storage.local.remove('hephaestusServerUrl', done);
-    });
-
-    refreshServerStatus();
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) refreshServerStatus();
-    });
-  }
-
   // ---- Output tabs ----
   let activeTab = 'summary';
 
@@ -123,7 +125,9 @@
     if (!TABS.includes(tab)) return;
     activeTab = tab;
     document.querySelectorAll('.tab-btn').forEach((btn) => {
-      btn.classList.toggle('active', btn.dataset.tab === tab);
+      const on = btn.dataset.tab === tab;
+      btn.classList.toggle('active', on);
+      btn.setAttribute('aria-selected', on ? 'true' : 'false');
     });
     document.querySelectorAll('.pane').forEach((pane) => {
       pane.classList.toggle('active', pane.dataset.pane === tab);
@@ -145,34 +149,44 @@
   }
 
   function requestRun(action) {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    queryActivePageTab((tabs) => {
       if (!tabs || !tabs[0]) {
         setStatus('No active tab.');
         return;
       }
-      const tabId = tabs[0].id;
-      chrome.runtime.sendMessage({ type: 'REQUEST_PAGE_CONTEXT', tabId }).then((ctxResp) => {
-        if (!ctxResp || ctxResp.error || !ctxResp.pageContext) {
-          setStatus(`Could not extract page: ${ctxResp && ctxResp.error ? ctxResp.error : 'unknown error'}`);
-          return;
-        }
-        chrome.runtime.sendMessage({
-          type: 'ACTION_REQUEST',
-          action,
-          pageContext: ctxResp.pageContext,
-          tabId
-        }).then((res) => {
-          if (res && res.error) {
+      const tab = tabs[0];
+      const blocked = !tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://') || tab.url.startsWith('edge://') || tab.url.startsWith('about:');
+      if (blocked) {
+        setStatus('Pick a normal web page tab (not chrome:// or the extensions page), then run again.');
+        return;
+      }
+      const tabId = tab.id;
+      runtimeSend({ type: 'REQUEST_PAGE_CONTEXT', tabId })
+        .then((ctxResp) => {
+          if (!ctxResp || ctxResp.error || !ctxResp.pageContext) {
+            setStatus(`Could not extract page: ${ctxResp && ctxResp.error ? ctxResp.error : 'unknown error'}`);
+            return;
+          }
+          return runtimeSend({
+            type: 'ACTION_REQUEST',
+            action,
+            pageContext: ctxResp.pageContext,
+            tabId
+          });
+        })
+        .then((res) => {
+          if (!res) return;
+          if (res.error) {
             setStatus(`Error: ${res.error}`);
             return;
           }
-          if (res && res.jobId) {
+          if (res.jobId) {
             currentJobId = res.jobId;
             setStatus(`Running ${action}…`);
             setActiveTab(action);
           }
-        }).catch((err) => setStatus(`Send failed: ${err.message}`));
-      }).catch((err) => setStatus(`Context fetch failed: ${err.message}`));
+        })
+        .catch((err) => setStatus(`Send failed: ${err.message}`));
     });
   }
 
@@ -180,7 +194,7 @@
     $('run-active-btn').addEventListener('click', () => requestRun(activeTab));
     $('cancel-btn').addEventListener('click', () => {
       if (!currentJobId) return;
-      chrome.runtime.sendMessage({ type: 'ABORT_ACTION', jobId: currentJobId });
+      runtimeSend({ type: 'ABORT_ACTION', jobId: currentJobId }).catch(() => {});
       setStatus('Cancelled.');
     });
   }
@@ -289,7 +303,7 @@
     } else if (msg.status === 'complete') {
       $('pane-video').innerHTML = `
         <div class="video-prompt"><strong>Prompt:</strong> ${escapeHtml(msg.prompt || '')}</div>
-        <video controls autoplay style="max-width:100%;margin-top:8px;border-radius:8px;">
+        <video controls autoplay class="forge-video-preview">
           <source src="${escapeHtml(msg.uri)}" type="${escapeHtml(msg.mimeType || 'video/mp4')}">
         </video>`;
     } else if (msg.status === 'error') {
@@ -384,10 +398,14 @@
 
   // ---- Boot ----
   document.addEventListener('DOMContentLoaded', () => {
-    initGazeControls();
-    initServerPanel();
-    initTabs();
-    initActions();
-    initPodcastControls();
+    try {
+      initGazeControls();
+      initTabs();
+      initActions();
+      initPodcastControls();
+    } catch (e) {
+      const el = $('output-status');
+      if (el) el.textContent = `Panel init failed: ${e && e.message ? e.message : e}`;
+    }
   });
 })();

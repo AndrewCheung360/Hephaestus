@@ -29,6 +29,78 @@ app.get('/health', (req, res) => {
   res.json({ ok: true });
 });
 
+const DIAGNOSTIC_ANTHROPIC_MODEL = process.env.ANTHROPIC_DIAGNOSTIC_MODEL || 'claude-haiku-4-5';
+
+async function probeAnthropicKey(apiKey) {
+  const trimmed = apiKey && String(apiKey).trim();
+  if (!trimmed) {
+    return { configured: false };
+  }
+  try {
+    const upstream = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': trimmed,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: DIAGNOSTIC_ANTHROPIC_MODEL,
+        max_tokens: 1,
+        stream: false,
+        messages: [{ role: 'user', content: 'ping' }]
+      })
+    });
+    if (upstream.ok) {
+      return { configured: true, ok: true, status: upstream.status };
+    }
+    const text = await upstream.text().catch(() => '');
+    return {
+      configured: true,
+      ok: false,
+      status: upstream.status,
+      message: text.slice(0, 240)
+    };
+  } catch (err) {
+    return { configured: true, ok: false, message: String(err && err.message ? err.message : err) };
+  }
+}
+
+async function probeGeminiKey(apiKey) {
+  const trimmed = apiKey && String(apiKey).trim();
+  if (!trimmed) {
+    return { configured: false };
+  }
+  try {
+    const u = new URL('https://generativelanguage.googleapis.com/v1beta/models');
+    u.searchParams.set('pageSize', '1');
+    u.searchParams.set('key', trimmed);
+    const upstream = await fetch(u.toString(), { method: 'GET' });
+    if (upstream.ok) {
+      return { configured: true, ok: true, status: upstream.status };
+    }
+    const text = await upstream.text().catch(() => '');
+    return {
+      configured: true,
+      ok: false,
+      status: upstream.status,
+      message: text.slice(0, 240)
+    };
+  } catch (err) {
+    return { configured: true, ok: false, message: String(err && err.message ? err.message : err) };
+  }
+}
+
+app.get('/diagnostics', checkSecret, async (req, res) => {
+  try {
+    const anthropic = await probeAnthropicKey(process.env.ANTHROPIC_API_KEY);
+    const gemini = await probeGeminiKey(process.env.GEMINI_API_KEY);
+    res.json({ ok: true, anthropic, gemini });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: String(err && err.message ? err.message : err) });
+  }
+});
+
 app.post(
   '/anthropic/v1/messages',
   checkSecret,

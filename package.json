@@ -2,6 +2,8 @@
   "name": "hephaestus",
   "private": true,
   "scripts": {
-    "server": "npm install --prefix server && npm --prefix server start"
+    "server": "npm install --prefix server && npm --prefix server start",
+    "test-proxy": "curl -sS -m 3 http://127.0.0.1:8787/health",
+    "test-diagnostics": "curl -sS -m 30 http://127.0.0.1:8787/diagnostics"
   }
 }

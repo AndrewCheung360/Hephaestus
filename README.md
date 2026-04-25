@@ -27,10 +27,10 @@ Built on the Hephaestus gaze layer. All biometrics stay on-device; only page tex
    kill <pid>
    ```
 
-   Or pick another port: set `PORT=8790` in `server/.env`, restart the server, then in the extension side panel set **Server base URL** to `http://127.0.0.1:8790` and click **Save URL**.
+   Or pick another port: set `PORT=8790` in `server/.env`, restart the server, then set extension storage key **`hephaestusServerUrl`** to `http://127.0.0.1:8790` (e.g. DevTools → Application → Extension storage → `chrome.storage.local`), or leave it unset to use the default `http://127.0.0.1:8787`.
 
 2. Open `chrome://extensions`, enable **Developer mode**, click **Load unpacked**, select this folder (the extension root, not `server/`).
-3. Click the Hephaestus action icon to open the side panel. Confirm **Server: OK** (or set **Server base URL** if you changed the port, then **Save URL**).
+3. Click the Hephaestus action icon to open the side panel. From the repo you can run **`npm run test-proxy`** (health) or **`npm run test-diagnostics`** (checks `.env` keys via `GET /diagnostics`); the extension assumes the proxy is at the URL above.
 4. Toggle **Enable** on Head Tracking and grant the camera permission.
 5. Press **Alt+H** to calibrate head position (5 points). Press **Alt+M** to calibrate mouth-open.
 
