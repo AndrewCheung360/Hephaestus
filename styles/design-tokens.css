@@ -1,0 +1,89 @@
+/**
+ * Hephaestus design tokens — see DESIGN.md
+ * Loaded by: sidepanel.html, orbital/orbital-menu.js, gaze/gaze-overlay.js
+ */
+:root {
+  /* Brand core */
+  --heph-primary: #6366f1;
+  --heph-primary-hover: #4f46e5;
+  --heph-primary-active: #4338ca;
+  --heph-primary-soft: rgba(99, 102, 241, 0.12);
+  --heph-primary-softer: rgba(99, 102, 241, 0.08);
+  --heph-primary-ring: rgba(99, 102, 241, 0.35);
+
+  --heph-secondary: #6c6e7e;
+  --heph-secondary-muted: rgba(108, 110, 126, 0.65);
+
+  --heph-tertiary: #7c3aed;
+  --heph-tertiary-hover: #6d28d9;
+  --heph-tertiary-soft: rgba(124, 58, 237, 0.12);
+
+  --heph-neutral: #585a68;
+
+  /* Neutrals (cool grey scale) */
+  --heph-ink: #0f172a;
+  --heph-ink-muted: #475569;
+  --heph-text: #1e293b;
+  --heph-text-secondary: #64748b;
+  --heph-text-tertiary: #94a3b8;
+  --heph-border: #e2e8f0;
+  --heph-border-strong: #cbd5e1;
+  --heph-surface-page: #f4f6fb;
+  --heph-surface-raised: #ffffff;
+  --heph-surface-subtle: #f1f5f9;
+
+  /* Semantic (legacy aliases — used across sidepanel.css) */
+  --color-primary: var(--heph-primary);
+  --color-primary-hover: var(--heph-primary-hover);
+  --color-primary-light: var(--heph-primary-soft);
+  --color-text: var(--heph-text);
+  --color-text-secondary: var(--heph-text-secondary);
+  --color-text-light: var(--heph-text-tertiary);
+  --color-border: var(--heph-border);
+  --color-bg: var(--heph-surface-raised);
+  --color-bg-hover: var(--heph-surface-subtle);
+
+  --color-success: #059669;
+  --color-success-light: #ecfdf5;
+
+  --color-danger: #dc2626;
+  --color-warning-bg: #fffbeb;
+  --color-warning-border: #f59e0b;
+  --color-warning-text: #92400e;
+
+  /* Typography */
+  --heph-font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --heph-font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Monaco, 'Courier New', monospace;
+
+  --heph-text-display: 1.375rem;
+  --heph-text-title: 1.125rem;
+  --heph-text-body: 0.875rem;
+  --heph-text-body-sm: 0.8125rem;
+  --heph-text-caption: 0.75rem;
+  --heph-text-overline: 0.6875rem;
+
+  --heph-leading-tight: 1.25;
+  --heph-leading-snug: 1.35;
+  --heph-leading-normal: 1.5;
+  --heph-tracking-overline: 0.08em;
+  --heph-tracking-tight: -0.02em;
+
+  /* Shape & elevation */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 9999px;
+
+  --heph-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --heph-shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --heph-shadow-lg: 0 12px 40px rgba(15, 23, 42, 0.12);
+
+  --shadow-sm: var(--heph-shadow-sm);
+  --shadow-md: var(--heph-shadow-md);
+
+  /* Orbital / overlays (consumers may reference directly) */
+  --heph-orbital-veil-inner: rgba(99, 102, 241, 0.08);
+  --heph-orbital-veil-outer: rgba(15, 23, 42, 0.42);
+  --heph-overlay-backdrop: rgba(15, 23, 42, 0.55);
+  --heph-overlay-panel: rgba(15, 23, 42, 0.92);
+}

@@ -17,48 +17,50 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.9);
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(8px);
       z-index: 2147483647;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     `;
 
     const panel = document.createElement('div');
     panel.style.cssText = `
-      background: #2a2a2a;
+      background: #1e293b;
+      border: 1px solid #334155;
       border-radius: 16px;
       padding: 48px;
       max-width: 600px;
       text-align: center;
-      color: white;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      color: #f8fafc;
+      box-shadow: 0 24px 64px rgba(15, 23, 42, 0.5);
     `;
 
     panel.innerHTML = `
-      <div style="font-size: 48px; margin-bottom: 16px;">👄</div>
-      <h2 style="margin: 0 0 16px 0; font-size: 28px; font-weight: 600;">Mouth Click Calibration</h2>
-      <p id="mouth-cal-instructions" style="font-size: 18px; line-height: 1.6; margin: 0 0 32px 0; color: #ccc;">
+      <div style="font-size: 40px; font-weight: 600; margin-bottom: 12px; color: #6366f1; line-height: 1;">◉</div>
+      <h2 style="margin: 0 0 16px 0; font-size: 26px; font-weight: 700; letter-spacing: -0.02em;">Mouth click calibration</h2>
+      <p id="mouth-cal-instructions" style="font-size: 17px; line-height: 1.55; margin: 0 0 32px 0; color: #cbd5e1;">
         Click "Start" to begin calibrating mouth-open detection.<br>
         You'll capture your mouth in two positions: open and closed.
       </p>
       <div id="mouth-cal-progress" style="display: none; margin-bottom: 24px;">
-        <div style="font-size: 64px; font-weight: bold; color: #8b5a3c;" id="mouth-cal-count">0</div>
-        <div style="font-size: 14px; color: #999;">samples collected</div>
+        <div style="font-size: 64px; font-weight: 700; color: #6366f1;" id="mouth-cal-count">0</div>
+        <div style="font-size: 13px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em;">samples collected</div>
       </div>
       <button id="mouth-cal-action" style="
-        background: #8b5a3c;
-        color: white;
+        background: #6366f1;
+        color: #fff;
         border: none;
         padding: 16px 48px;
-        font-size: 18px;
+        font-size: 17px;
         font-weight: 600;
-        border-radius: 8px;
+        border-radius: 12px;
         cursor: pointer;
-        transition: all 0.2s;
-      ">Start Calibration</button>
-      <div style="margin-top: 24px; font-size: 14px; color: #999;">Press ESC to cancel</div>
+        transition: background 0.2s, transform 0.2s;
+      ">Start calibration</button>
+      <div style="margin-top: 24px; font-size: 13px; color: #94a3b8;">Press ESC to cancel</div>
     `;
 
     overlay.appendChild(panel);
@@ -77,51 +79,51 @@
 
     if (step === 'start') {
       instructions.innerHTML = `
-        <strong style="font-size: 24px; color: #8b5a3c;">Step 1: Open Mouth</strong><br><br>
+        <strong style="font-size: 22px; color: #6366f1;">Step 1: Open mouth</strong><br><br>
         OPEN your mouth wide (like saying "AAAH")<br>
         and press SPACE or click the button below.
       `;
       progress.style.display = 'block';
-      button.textContent = 'Capture Open Mouth';
-      button.style.background = '#8b5a3c';
+      button.textContent = 'Capture open mouth';
+      button.style.background = '#6366f1';
     } else if (step === 'open-collecting') {
       instructions.innerHTML = `
-        <strong style="font-size: 24px; color: #4CAF50;">Keep mouth OPEN!</strong><br><br>
+        <strong style="font-size: 22px; color: #059669;">Keep mouth OPEN</strong><br><br>
         Collecting samples... ${count}/${MIN_SAMPLES}
       `;
       button.textContent = 'Collecting...';
       button.disabled = true;
-      button.style.background = '#666';
+      button.style.background = '#64748b';
       button.style.cursor = 'not-allowed';
     } else if (step === 'open-done') {
       instructions.innerHTML = `
-        <strong style="font-size: 24px; color: #4CAF50;">✓ Open mouth captured!</strong><br><br>
-        <strong style="font-size: 24px; color: #8b5a3c;">Step 2: Close Mouth</strong><br><br>
+        <strong style="font-size: 22px; color: #059669;">Open mouth captured</strong><br><br>
+        <strong style="font-size: 22px; color: #6366f1;">Step 2: Close mouth</strong><br><br>
         CLOSE your mouth normally (relaxed)<br>
         and press SPACE or click the button below.
       `;
-      button.textContent = 'Capture Closed Mouth';
+      button.textContent = 'Capture closed mouth';
       button.disabled = false;
-      button.style.background = '#8b5a3c';
+      button.style.background = '#6366f1';
       button.style.cursor = 'pointer';
     } else if (step === 'closed-collecting') {
       instructions.innerHTML = `
-        <strong style="font-size: 24px; color: #4CAF50;">Keep mouth CLOSED!</strong><br><br>
+        <strong style="font-size: 22px; color: #059669;">Keep mouth CLOSED</strong><br><br>
         Collecting samples... ${count}/${MIN_SAMPLES}
       `;
       button.textContent = 'Collecting...';
       button.disabled = true;
-      button.style.background = '#666';
+      button.style.background = '#64748b';
       button.style.cursor = 'not-allowed';
     } else if (step === 'done') {
       instructions.innerHTML = `
-        <strong style="font-size: 32px; color: #4CAF50;">🎉 Calibration Complete!</strong><br><br>
+        <strong style="font-size: 26px; color: #059669;">Calibration complete</strong><br><br>
         Mouth-open clicking is now ready to use.<br>
         Open your mouth wide to trigger clicks!
       `;
       progress.style.display = 'none';
       button.textContent = 'Done';
-      button.style.background = '#4CAF50';
+      button.style.background = '#059669';
     }
   }
 

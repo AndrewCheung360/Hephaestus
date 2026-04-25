@@ -7,28 +7,28 @@
   'use strict';
 
   const ITEMS = [
-    { action: 'summary',       label: 'Summary',     glyph: '❖' },
-    { action: 'flashcards',    label: 'Flashcards',  glyph: '❖' },
-    { action: 'quiz',          label: 'Quiz',        glyph: '❖' },
-    { action: 'podcast',       label: 'Podcast',     glyph: '❖' },
-    { action: 'video',         label: 'Video',       glyph: '❖' },
-    { action: 'mastery_path',  label: 'Mastery Path',glyph: '❖' }
+    { action: 'summary',       label: 'Summary',      glyph: '❖' },
+    { action: 'flashcards',    label: 'Flashcards',   glyph: '❖' },
+    { action: 'quiz',          label: 'Quiz',         glyph: '❖' },
+    { action: 'podcast',       label: 'Podcast',      glyph: '❖' },
+    { action: 'video',         label: 'Video',        glyph: '❖' },
+    { action: 'mastery_path',  label: 'Mastery Path', glyph: '❖' }
   ];
 
-  // Use distinct emoji-style glyphs without crossing into emoji (per house rules).
-  // We use Dingbats / geometric symbols so each icon is visually distinct.
+  // Geometric / symbol glyphs only (see DESIGN.md — Iconography).
   const GLYPHS = {
-    summary:      '¶',  // ¶
-    flashcards:   '☰',  // ☰
-    quiz:         '❔',  // ❔ (kept — non-decorative)
-    podcast:      '♫',  // ♫
-    video:        '▶',  // ▶
-    mastery_path: '★'   // ★
+    summary:      '¶',
+    flashcards:   '☰',
+    quiz:         '◈',
+    podcast:      '♪',
+    video:        '▶',
+    mastery_path: '✦'
   };
   for (const item of ITEMS) item.glyph = GLYPHS[item.action] || item.glyph;
 
   const RADIUS = 130;
   const FOCUS_RADIUS = 70;
+  const TOKENS_HREF = chrome.runtime.getURL('styles/design-tokens.css');
   const CSS_HREF = chrome.runtime.getURL('orbital/orbital-menu.css');
 
   let root = null;
@@ -44,6 +44,10 @@
   function ensureCss() {
     if (cssInjected) return;
     cssInjected = true;
+    const tokens = document.createElement('link');
+    tokens.rel = 'stylesheet';
+    tokens.href = TOKENS_HREF;
+    document.head.appendChild(tokens);
     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.href = CSS_HREF;

@@ -54,7 +54,7 @@
       display: none;
       align-items: center;
       justify-content: center;
-      background: rgba(0, 0, 0, 0.85);
+      background: rgba(15, 23, 42, 0.82);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       pointer-events: auto;
@@ -65,53 +65,51 @@
       min-width: 320px;
       max-width: 420px;
       padding: 32px 32px;
-      border-radius: 20px;
-      background: rgba(255, 255, 255, 0.95);
-      color: #1a1a1a;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      border-radius: 16px;
+      background: #ffffff;
+      color: #0f172a;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       text-align: center;
-      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 24px 80px rgba(15, 23, 42, 0.18);
       pointer-events: auto;
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
+      border: 1px solid #e2e8f0;
     `;
 
     titleEl = document.createElement('div');
-    titleEl.style.cssText = 'font-size: 22px; font-weight: 700; margin-bottom: 16px; color: #1a1a1a; letter-spacing: -0.02em;';
+    titleEl.style.cssText = 'font-size: 22px; font-weight: 700; margin-bottom: 16px; color: #0f172a; letter-spacing: -0.02em;';
     hintEl = document.createElement('div');
-    hintEl.style.cssText = 'font-size: 16px; opacity: 0.75; margin-bottom: 20px; color: #333; line-height: 1.5;';
+    hintEl.style.cssText = 'font-size: 15px; margin-bottom: 20px; color: #64748b; line-height: 1.55;';
 
     beginBtn = document.createElement('button');
-    beginBtn.textContent = 'Click Here to Begin';
+    beginBtn.textContent = 'Click here to begin';
     beginBtn.style.cssText = `
       padding: 14px 32px;
       font-size: 16px;
       font-weight: 600;
       color: white;
-      background: #3498db;
+      background: #6366f1;
       border: none;
       border-radius: 12px;
       cursor: pointer;
       margin-bottom: 20px;
       display: none;
       transition: all 0.2s;
-      box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
     `;
     beginBtn.onmouseover = () => {
-      beginBtn.style.background = '#2980b9';
+      beginBtn.style.background = '#4f46e5';
       beginBtn.style.transform = 'translateY(-2px)';
-      beginBtn.style.boxShadow = '0 6px 16px rgba(52, 152, 219, 0.4)';
+      beginBtn.style.boxShadow = '0 8px 20px rgba(99, 102, 241, 0.4)';
     };
     beginBtn.onmouseout = () => {
-      beginBtn.style.background = '#3498db';
+      beginBtn.style.background = '#6366f1';
       beginBtn.style.transform = 'translateY(0)';
-      beginBtn.style.boxShadow = '0 4px 12px rgba(52, 152, 219, 0.3)';
+      beginBtn.style.boxShadow = '0 4px 14px rgba(99, 102, 241, 0.35)';
     };
     beginBtn.onclick = handleBeginClick;
 
     footerEl = document.createElement('div');
-    footerEl.style.cssText = 'font-size: 13px; opacity: 0.5; color: #666;';
+    footerEl.style.cssText = 'font-size: 12px; color: #94a3b8; letter-spacing: 0.02em;';
 
     panel.appendChild(titleEl);
     panel.appendChild(hintEl);

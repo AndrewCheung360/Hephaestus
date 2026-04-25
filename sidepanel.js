@@ -1,6 +1,6 @@
 // Hephaestus side panel.
-// Manages: gaze toggle/calibration controls, API key storage, tabbed action
-// output, and Web Speech podcast playback.
+// Manages: gaze toggle/calibration controls, local server URL + health, tabbed
+// action output, and Web Speech podcast playback.
 
 (function() {
   'use strict';
@@ -76,38 +76,44 @@
     });
   }
 
-  // ---- API keys ----
-  function refreshKeyStatus() {
-    chrome.runtime.sendMessage({ type: 'GET_KEY_STATUS' }).then((res) => {
+  // ---- Local server ----
+  function refreshServerStatus() {
+    chrome.runtime.sendMessage({ type: 'GET_SERVER_STATUS' }).then((res) => {
       if (!res) return;
-      $('anthropic-status').textContent = `Anthropic: ${res.anthropic}`;
-      $('anthropic-status').classList.toggle('ok', res.anthropic === 'set');
-      $('gemini-status').textContent = `Gemini: ${res.gemini}`;
-      $('gemini-status').classList.toggle('ok', res.gemini === 'set');
-    }).catch(() => {});
+      const el = $('server-status');
+      if (res.server === 'ok') {
+        el.textContent = 'Server: OK';
+        el.classList.add('ok');
+      } else {
+        el.textContent = 'Server: unreachable';
+        el.classList.remove('ok');
+      }
+    }).catch(() => {
+      const el = $('server-status');
+      el.textContent = 'Server: unreachable';
+      el.classList.remove('ok');
+    });
   }
 
-  function initApiKeys() {
-    chrome.storage.local.get(['anthropicApiKey', 'geminiApiKey', 'hephaestusModels'], (res) => {
-      if (res.anthropicApiKey) $('anthropic-key').value = res.anthropicApiKey;
-      if (res.geminiApiKey) $('gemini-key').value = res.geminiApiKey;
-      if (res.hephaestusModels) {
-        if (res.hephaestusModels.fast) $('model-fast').value = res.hephaestusModels.fast;
-        if (res.hephaestusModels.deep) $('model-deep').value = res.hephaestusModels.deep;
-      }
+  function initServerPanel() {
+    chrome.storage.local.get(['hephaestusServerUrl'], (res) => {
+      if (res.hephaestusServerUrl) $('server-url').value = res.hephaestusServerUrl;
     });
 
-    $('save-keys-btn').addEventListener('click', () => {
-      const anthropicApiKey = $('anthropic-key').value.trim();
-      const geminiApiKey = $('gemini-key').value.trim();
-      const hephaestusModels = { fast: $('model-fast').value, deep: $('model-deep').value };
-      chrome.storage.local.set({ anthropicApiKey, geminiApiKey, hephaestusModels }, () => {
-        refreshKeyStatus();
-        setStatus('Saved.');
-      });
+    $('save-server-url-btn').addEventListener('click', () => {
+      const hephaestusServerUrl = $('server-url').value.trim();
+      const done = () => {
+        refreshServerStatus();
+        setStatus('Server URL saved.');
+      };
+      if (hephaestusServerUrl) chrome.storage.local.set({ hephaestusServerUrl }, done);
+      else chrome.storage.local.remove('hephaestusServerUrl', done);
     });
 
-    refreshKeyStatus();
+    refreshServerStatus();
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) refreshServerStatus();
+    });
   }
 
   // ---- Output tabs ----
@@ -369,7 +375,7 @@
   // ---- Boot ----
   document.addEventListener('DOMContentLoaded', () => {
     initGazeControls();
-    initApiKeys();
+    initServerPanel();
     initTabs();
     initActions();
     initPodcastControls();
