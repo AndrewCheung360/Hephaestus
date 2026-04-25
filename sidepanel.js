@@ -88,20 +88,22 @@
   }
 
   function initApiKeys() {
-    chrome.storage.local.get(['anthropicApiKey', 'geminiApiKey', 'hephaestusModels'], (res) => {
+    chrome.storage.local.get(['anthropicApiKey', 'geminiApiKey', 'hephaestusModels', 'veoModel'], (res) => {
       if (res.anthropicApiKey) $('anthropic-key').value = res.anthropicApiKey;
       if (res.geminiApiKey) $('gemini-key').value = res.geminiApiKey;
       if (res.hephaestusModels) {
         if (res.hephaestusModels.fast) $('model-fast').value = res.hephaestusModels.fast;
         if (res.hephaestusModels.deep) $('model-deep').value = res.hephaestusModels.deep;
       }
+      if (res.veoModel && $('model-veo')) $('model-veo').value = res.veoModel;
     });
 
     $('save-keys-btn').addEventListener('click', () => {
       const anthropicApiKey = $('anthropic-key').value.trim();
       const geminiApiKey = $('gemini-key').value.trim();
       const hephaestusModels = { fast: $('model-fast').value, deep: $('model-deep').value };
-      chrome.storage.local.set({ anthropicApiKey, geminiApiKey, hephaestusModels }, () => {
+      const veoModel = $('model-veo') ? $('model-veo').value : 'veo-3.0-generate-001';
+      chrome.storage.local.set({ anthropicApiKey, geminiApiKey, hephaestusModels, veoModel }, () => {
         refreshKeyStatus();
         setStatus('Saved.');
       });

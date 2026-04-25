@@ -12,6 +12,12 @@
   const STICKY_RADIUS_PX = 45;
   const SCROLL_ZONE_ID = 'gaze-scroll-zones';
   const DWELL_INDICATOR_ID = 'gaze-dwell-indicator';
+  // Browser navigation: dwelling on the left/right viewport edge fires
+  // history.back() / history.forward(). Slightly longer than the link-dwell
+  // threshold so accidental drift to the edges doesn't navigate.
+  const NAV_ZONE_WIDTH = 80;
+  const NAV_DWELL_MS = 900;
+  const NAV_COOLDOWN_MS = 1500;
 
   let gazeEnabled = false;
   let dwellThreshold = DEFAULT_DWELL_MS;
@@ -28,6 +34,9 @@
   let scrollZones = null;
   let dwellIndicator = null;
   const edgeHold = { top: 0, bottom: 0 };
+  let navDwellSide = null; // 'back' | 'forward' | null
+  let navDwellStart = 0;
+  let lastNavFiredAt = 0;
 
   function ensureScrollZones() {
     if (scrollZones && scrollZones.parentNode) {
@@ -67,10 +76,110 @@
       transition: opacity 0.2s ease;
     `;
 
+    const leftZone = document.createElement('div');
+    leftZone.id = 'gaze-nav-left';
+    leftZone.style.cssText = `
+      position: absolute; top: 0; bottom: 0; left: 0;
+      width: ${NAV_ZONE_WIDTH}px;
+      background: linear-gradient(90deg, rgba(147, 51, 234, 0.20) 0%, rgba(147, 51, 234, 0) 100%);
+      border-right: 1px solid rgba(147, 51, 234, 0.40);
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    `;
+    const leftFill = document.createElement('div');
+    leftFill.id = 'gaze-nav-left-fill';
+    leftFill.style.cssText = `
+      position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+      width: 6px; height: 0%;
+      background: rgba(147, 51, 234, 0.85);
+      border-radius: 0 4px 4px 0;
+      transition: height 0.08s linear;
+    `;
+    leftZone.appendChild(leftFill);
+
+    const rightZone = document.createElement('div');
+    rightZone.id = 'gaze-nav-right';
+    rightZone.style.cssText = `
+      position: absolute; top: 0; bottom: 0; right: 0;
+      width: ${NAV_ZONE_WIDTH}px;
+      background: linear-gradient(270deg, rgba(251, 146, 60, 0.20) 0%, rgba(251, 146, 60, 0) 100%);
+      border-left: 1px solid rgba(251, 146, 60, 0.40);
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    `;
+    const rightFill = document.createElement('div');
+    rightFill.id = 'gaze-nav-right-fill';
+    rightFill.style.cssText = `
+      position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+      width: 6px; height: 0%;
+      background: rgba(251, 146, 60, 0.85);
+      border-radius: 4px 0 0 4px;
+      transition: height 0.08s linear;
+    `;
+    rightZone.appendChild(rightFill);
+
     scrollZones.appendChild(topZone);
     scrollZones.appendChild(bottomZone);
+    scrollZones.appendChild(leftZone);
+    scrollZones.appendChild(rightZone);
     document.body.appendChild(scrollZones);
     return scrollZones;
+  }
+
+  function updateNavZoneVisibility(side, progress) {
+    const left = document.getElementById('gaze-nav-left');
+    const right = document.getElementById('gaze-nav-right');
+    const leftFill = document.getElementById('gaze-nav-left-fill');
+    const rightFill = document.getElementById('gaze-nav-right-fill');
+    if (!left || !right) return;
+    left.style.opacity = side === 'back' ? '1' : '0';
+    right.style.opacity = side === 'forward' ? '1' : '0';
+    if (leftFill) leftFill.style.height = side === 'back' ? `${Math.round(progress * 100)}%` : '0%';
+    if (rightFill) rightFill.style.height = side === 'forward' ? `${Math.round(progress * 100)}%` : '0%';
+  }
+
+  function navLoop(x, ts) {
+    if (window.__orbitalActive) {
+      navDwellSide = null;
+      navDwellStart = 0;
+      updateNavZoneVisibility(null, 0);
+      return;
+    }
+    if (ts - lastNavFiredAt < NAV_COOLDOWN_MS) {
+      updateNavZoneVisibility(null, 0);
+      return;
+    }
+    const w = window.innerWidth;
+    const inLeft = x < NAV_ZONE_WIDTH;
+    const inRight = x > w - NAV_ZONE_WIDTH;
+    const side = inLeft ? 'back' : inRight ? 'forward' : null;
+
+    if (side !== navDwellSide) {
+      navDwellSide = side;
+      navDwellStart = side ? ts : 0;
+      updateNavZoneVisibility(side, 0);
+      return;
+    }
+    if (!side) {
+      updateNavZoneVisibility(null, 0);
+      return;
+    }
+    const elapsed = ts - navDwellStart;
+    const progress = Math.min(1, elapsed / NAV_DWELL_MS);
+    updateNavZoneVisibility(side, progress);
+    if (elapsed >= NAV_DWELL_MS) {
+      lastNavFiredAt = ts;
+      navDwellSide = null;
+      navDwellStart = 0;
+      updateNavZoneVisibility(null, 0);
+      if (side === 'back') {
+        beep(420, 130);
+        try { window.history.back(); } catch (_) {}
+      } else {
+        beep(640, 130);
+        try { window.history.forward(); } catch (_) {}
+      }
+    }
   }
 
   function updateScrollZoneVisibility(topIntensity, bottomIntensity) {
@@ -256,8 +365,20 @@
     lastPointerY = rawY;
     edgeLoop(rawX, rawY);
 
+    const ts0 = typeof detail.ts === 'number' ? detail.ts : performance.now();
+    navLoop(rawX, ts0);
+
     // Suppress dwell-to-click while orbital menu is active — it owns gaze targeting.
     if (window.__orbitalActive) {
+      hideDwellIndicator();
+      dwellTarget = null;
+      dwellAccum = 0;
+      return;
+    }
+
+    // Suppress link-dwell focusing while the gaze is parked in a nav edge so
+    // the dwell ring doesn't fight with the nav-zone fill animation.
+    if (rawX < NAV_ZONE_WIDTH || rawX > window.innerWidth - NAV_ZONE_WIDTH) {
       hideDwellIndicator();
       dwellTarget = null;
       dwellAccum = 0;

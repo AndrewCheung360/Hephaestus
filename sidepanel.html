@@ -122,6 +122,18 @@
         </select>
       </div>
 
+      <div class="setting-group">
+        <label class="setting-label" for="model-veo">Veo model</label>
+        <select id="model-veo" class="setting-select">
+          <option value="veo-3.0-generate-001" selected>veo-3.0-generate-001 (Veo 3 GA, 8s)</option>
+          <option value="veo-3.0-fast-generate-001">veo-3.0-fast-generate-001 (Veo 3 Fast)</option>
+          <option value="veo-3.1-generate-preview">veo-3.1-generate-preview</option>
+          <option value="veo-3.1-fast-generate-preview">veo-3.1-fast-generate-preview</option>
+          <option value="veo-3.1-lite-generate-preview">veo-3.1-lite-generate-preview</option>
+          <option value="veo-2.0-generate-001">veo-2.0-generate-001 (Veo 2, configurable duration)</option>
+        </select>
+      </div>
+
       <button id="save-keys-btn" class="btn primary">Save</button>
       <div class="key-status">
         <span id="anthropic-status">Anthropic: ?</span>
